@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pizarra de Colores</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: #f0f8ff;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .toolbar {
+        margin: 10px;
+    }
+
+    button {
+        width: 50px;
+        height: 50px;
+        border: none;
+        margin: 5px;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    #canvas {
+        border: 3px solid black;
+        border-radius: 10px;
+        touch-action: none;
+        background: white;
+    }
+
+    .controls {
+        margin-top: 10px;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🎨 Dibuja lo que quieras</h1>
+
+<!-- Paleta -->
+<div class="toolbar" role="toolbar" aria-label="Paleta de colores">
+    <button style="background:red" aria-label="Rojo" onclick="setColor('red')"></button>
+    <button style="background:yellow" aria-label="Amarillo" onclick="setColor('yellow')"></button>
+    <button style="background:blue" aria-label="Azul" onclick="setColor('blue')"></button>
+    <button style="background:green" aria-label="Verde" onclick="setColor('green')"></button>
+    <button style="background:orange" aria-label="Naranja" onclick="setColor('orange')"></button>
+    <button style="background:black" aria-label="Negro" onclick="setColor('black')"></button>
+</div>
+
+<!-- Selector avanzado -->
+<div>
+    <input type="color" aria-label="Elegir cualquier color" onchange="setColor(this.value)">
+</div>
+
+<!-- Canvas -->
+<canvas id="canvas" width="350" height="350" tabindex="0"
+aria-label="Área de dibujo"></canvas>
+
+<!-- Controles -->
+<div class="controls">
+    <button onclick="clearCanvas()">🧹 Borrar</button>
+</div>
+
+<script>
+let color = "black";
+let dibujando = false;
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+// Accesibilidad: sonido simple
+function playSound() {
+    const audio = new AudioContext();
+    const osc = audio.createOscillator();
+    osc.connect(audio.destination);
+    osc.start();
+    osc.stop(audio.currentTime + 0.1);
+}
+
+// Vibración (si el dispositivo lo permite)
+function vibrate() {
+    if (navigator.vibrate) {
+        navigator.vibrate(50);
+    }
+}
+
+function setColor(c) {
+    color = c;
+    playSound();
+    vibrate();
+}
+
+// Eventos táctiles y mouse
+canvas.addEventListener("mousedown", () => dibujando = true);
+canvas.addEventListener("mouseup", () => {
+    dibujando = false;
+    ctx.beginPath();
+});
+canvas.addEventListener("mousemove", draw);
+
+canvas.addEventListener("touchstart", () => dibujando = true);
+canvas.addEventListener("touchend", () => {
+    dibujando = false;
+    ctx.beginPath();
+});
+canvas.addEventListener("touchmove", draw);
+
+// Dibujar
+function draw(e) {
+    if (!dibujando) return;
+
+    let rect = canvas.getBoundingClientRect();
+    let x, y;
+
+    if (e.touches) {
+        x = e.touches[0].clientX - rect.left;
+        y = e.touches[0].clientY - rect.top;
+    } else {
+        x = e.clientX - rect.left;
+        y = e.clientY - rect.top;
+    }
+
+    ctx.lineWidth = 8;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = color;
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+}
+
+// Limpiar
+function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// Accesibilidad con teclado
+canvas.addEventListener("keydown", (e) => {
+    if (e.key === "c") clearCanvas();
+});
+</script>
+
+</body>
+</html>
